@@ -210,3 +210,5 @@ __marimo__/
 .DS_Store
 */.DS_Store
 **/.DS_Store
+.next/
+node_modules/
