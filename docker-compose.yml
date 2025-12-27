@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_recommendMe
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: Aa123456       
+      MYSQL_DATABASE: TV_MOVIES_DB  
+      MYSQL_USER: REG               
+      MYSQL_PASSWORD: Aa123456             
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  data:
+    build: ./Data
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  mysql_data:

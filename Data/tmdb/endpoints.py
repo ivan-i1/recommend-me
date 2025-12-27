@@ -7,3 +7,9 @@ def discover_movies(page, start_date, end_date):
             "primary_release_date.lte": end_date,
         }
     }
+
+def movie_genres():
+    return {
+        "endpoint": "genre/movie/list",
+        "params": {}
+    }

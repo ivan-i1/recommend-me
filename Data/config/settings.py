@@ -5,5 +5,19 @@ TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0YmQ1YjNiMzUxNjFjOTdkOWI3ZjQ3NTc
 BASE_URL = "https://api.themoviedb.org/3"
 TIMEOUT = 10
 
+#PERIOD DATE EXTRACTION
 START_DATE_EXTRACTION = "2020-02-01"
-END_DATE_EXTRACTION = "2020-02-01"
+END_DATE_EXTRACTION = "2020-02-03"
+
+#IMAGE PATH
+BASE_IMG_URL = "https://image.tmdb.org/t/p/w500"
+POSTER_IMG_PATH = "/Users/rodrigoesparza/Documents/Freelance_Projects/img_recommendMe/"
+
+#CONECTION DB
+#DB_HOST="127.0.0.1"
+#DB_PORT=3307
+DB_HOST="mysql"
+DB_PORT=3306
+DB_USER="REG"
+DB_PASWORD="Aa123456"
+DB_NAME="TV_MOVIES_DB"
