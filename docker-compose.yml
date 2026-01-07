@@ -29,6 +29,9 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    volumes:
+    - ./logs:/app/logs
+    - ./Data/img_recommendMe:/app/images
     restart: "no"
 
 volumes:

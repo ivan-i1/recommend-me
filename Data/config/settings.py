@@ -11,7 +11,8 @@ END_DATE_EXTRACTION = "2020-02-03"
 
 #IMAGE PATH
 BASE_IMG_URL = "https://image.tmdb.org/t/p/w500"
-POSTER_IMG_PATH = "/Users/rodrigoesparza/Documents/Freelance_Projects/img_recommendMe/"
+POSTER_IMG_PATH = "/app/images/"
+INTERNAL_IMG_SAVE_PATH = "Data/img_recommendMe/"
 
 #CONECTION DB
 #DB_HOST="127.0.0.1"

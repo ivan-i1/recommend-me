@@ -212,3 +212,11 @@ __marimo__/
 **/.DS_Store
 *.next/
 *node_modules/
+
+#Ignore img and Logs
+img_recommendMe/*
+logs/*
+
+# Get Folder Empty .gitkeep
+!img_recommendMe/.gitkeep
+!logs/.gitkeep

@@ -1,5 +1,5 @@
 import logging
-from config.settings import START_DATE_EXTRACTION, END_DATE_EXTRACTION, POSTER_IMG_PATH
+from config.settings import START_DATE_EXTRACTION, END_DATE_EXTRACTION, INTERNAL_IMG_SAVE_PATH
 from tmdb.client import TMDBClient
 from tmdb import endpoints, helper
 from db.connection import get_connection
@@ -51,7 +51,7 @@ def get_movies(client, connection, cursor, date, page):
             title = helper.clean_text(movie["title"])
             id_img = helper.clean_text(movie["id_tmdb"])
             img_name = id_img + "_" + title + ".jpg"
-            img_path = f"{POSTER_IMG_PATH}{img_name}"
+            img_path = f"{INTERNAL_IMG_SAVE_PATH}{img_name}"
 
             if download_path is not None:
                 movie["img_path"] = img_path
@@ -72,6 +72,7 @@ def get_movies(client, connection, cursor, date, page):
             id_mov = queries.get_movie_id(cursor, movie_id)
             for genre in movie_genre_json[movie_id]:
                 id_gen = queries.get_genreMov_id(cursor, genre)
+                connection.commit()
                 queries.insert_movie_genres(cursor, id_mov, id_gen)
         except Exception as e:
             logging.error(f"Insert Movie_Genre error: {type(e).__name__}: {e}")
@@ -84,7 +85,7 @@ def get_movies(client, connection, cursor, date, page):
 if __name__ == "__main__":
 
     logging.basicConfig(
-        filename="logs/app.log",
+        filename="/app/logs/app.log",
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
         )
