@@ -214,9 +214,9 @@ __marimo__/
 *node_modules/
 
 #Ignore img and Logs
-img_recommendMe/*
+Data/img_recommendMe/*
 logs/*
 
 # Get Folder Empty .gitkeep
-!img_recommendMe/.gitkeep
+!Data/img_recommendMe/.gitkeep
 !logs/.gitkeep
