@@ -13,3 +13,9 @@ def movie_genres():
         "endpoint": "genre/movie/list",
         "params": {}
     }
+
+def credits_movies(movie_id):
+    return {
+        "endpoint": f"movie/{movie_id}/credits",
+        "params": {}
+    }

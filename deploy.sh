@@ -3,6 +3,7 @@ set -e
 
 echo "Start deploying..."
 
+docker system prune -f
 docker compose down -v
 docker compose build
 docker compose up -d mysql

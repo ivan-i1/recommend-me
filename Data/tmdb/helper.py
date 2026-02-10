@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from config.settings import POSTER_IMG_PATH
 import requests
 import re
+from keybert import KeyBERT
 
 
 
@@ -12,9 +13,10 @@ def extract_movies_list(response_json):
     movie_genre_json = {}
 
     for item in response_json["results"]:
-        movie = Movie(item)
-        movie_jsons.append(movie.to_json())
-        movie_genre_json[item['id']] = item["genre_ids"]
+        if item['popularity'] >= 1 and item['vote_average'] >= 3 and item['vote_count'] >= 50:
+            movie = Movie(item)
+            movie_jsons.append(movie.to_json())
+            movie_genre_json[item['id']] = item["genre_ids"]
     return movie_jsons, movie_genre_json
 
 def extract_genreMov_list(response_json):
@@ -46,3 +48,18 @@ def generate_dateList(start_date: str, end_date: str):
         start += timedelta(days=1)
 
     return dateList
+
+def extract_keywords(text, n=4):
+
+    kw_model = KeyBERT()
+
+    keywords = kw_model.extract_keywords(
+        text,
+        keyphrase_ngram_range=(1, 2), 
+        stop_words='english',          
+        top_n=n,                      
+        use_mmr=True,                  
+        diversity=0.5                 
+    )
+
+    return str([word for word, sim in keywords])

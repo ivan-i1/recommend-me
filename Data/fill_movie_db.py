@@ -1,4 +1,6 @@
 import logging
+import time
+import pandas as pd
 from config.settings import START_DATE_EXTRACTION, END_DATE_EXTRACTION, INTERNAL_IMG_SAVE_PATH
 from tmdb.client import TMDBClient
 from tmdb import endpoints, helper
@@ -41,6 +43,33 @@ def get_movies(client, connection, cursor, date, page):
 
     for movie in json_movies:
         try:
+            #Get Actors and Director
+            paramMov = endpoints.credits_movies(movie["id_tmdb"])
+            response_credits = client.get(
+                    endpoint=paramMov["endpoint"], 
+                    params = paramMov["params"]
+                )
+            
+            json_cast = response_credits["cast"]
+            if json_cast:
+                df_cast = pd.DataFrame(json_cast)
+                top_5_actors = df_cast.nsmallest(5, 'order')['name'].tolist()
+                movie["actors"] = str(top_5_actors)
+            else:
+                movie["actors"] = ""
+
+            json_crew = response_credits["crew"]
+            if json_crew:
+                df_crew = pd.DataFrame(json_crew)
+                director = df_crew[df_crew['job'] == 'Director']
+                movie["director"] = str(director["name"].values[0])
+            else:
+                movie["director"] = ""
+
+            #Get keywords
+            movie["keywords"] = helper.extract_keywords(str(movie["overview"]))
+
+            #Get Images
             download_path = ""
             if movie["poster_path"] is not None:
                 download_path = movie["poster_path"]
@@ -57,6 +86,7 @@ def get_movies(client, connection, cursor, date, page):
                 movie["img_path"] = img_path
                 client.get_img(download_path, img_name)
 
+            #Insert in DB
             queries.insert_movie(cursor, movie)
         except Exception as e:
             logging.error(f"Insert Movie error: {type(e).__name__}: {e}")
@@ -86,6 +116,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(
         filename="/app/logs/app.log",
+        #filename="../logs/app.log",
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
         )
@@ -100,11 +131,17 @@ if __name__ == "__main__":
     #Get Movies
     dateList = helper.generate_dateList(START_DATE_EXTRACTION, END_DATE_EXTRACTION)
     for date in dateList:
-        page = 1
-        pageNum = get_movies(client, connection, cursor, str(date), int(page))
-        while page < pageNum:
+        try:
+            page = 1
+            pageNum = get_movies(client, connection, cursor, str(date), int(page))
             page += 1
-            get_movies(client, connection, cursor, str(date), int(page))
+            while page <= pageNum:
+                get_movies(client, connection, cursor, str(date), int(page))
+                page += 1
+        except Exception as e:
+            logging.error(f"Loop Insert Movie error: {type(e).__name__}: {e}")
+            time.sleep(60)
+            continue
 
     cursor.close()
     connection.close()

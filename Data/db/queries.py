@@ -2,12 +2,13 @@
 def insert_movie(cursor, movie):
 
     query = "INSERT INTO Movies (id_tmdb, adult, backdrop_path, original_lenguaje, overview, popularity, " \
-        "                       poster_path, release_date, title, vote_average, vote_count, image_path) " \
-        "    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        "                       poster_path, release_date, title, vote_average, vote_count, image_path, director, actors, keywords) " \
+        "    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     cursor.execute(query, 
                 (movie["id_tmdb"], movie["adult"], movie["backdrop_path"], movie["original_lenguaje"], 
                     movie["overview"], movie["popularity"], movie["poster_path"], movie["release_date"], 
-                    movie["title"], movie["vote_average"], movie["vote_count"], movie["img_path"]))
+                    movie["title"], movie["vote_average"], movie["vote_count"], movie["img_path"], 
+                    movie["director"], movie["actors"], movie["keywords"]))
 
 def insert_genreMov(cursor, genreMov):
     query = "INSERT INTO GenreMov (id_genre_tmdb, name) VALUES (%s, %s)"

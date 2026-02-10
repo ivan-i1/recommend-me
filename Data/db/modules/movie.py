@@ -14,6 +14,9 @@ class Movie:
         self.vote_average = data.get("vote_average", "")
         self.vote_count = data.get("vote_count", "")
         self.img_path = ""
+        self.director = ""
+        self.actors = ""
+        self.keywords = ""
 
     def to_json(self):
         return {
@@ -28,5 +31,8 @@ class Movie:
             "title": self.title,
             "vote_average": self.vote_average,
             "vote_count": self.vote_count,
-            "img_path": self.img_path
+            "img_path": self.img_path,
+            "director": self.director,
+            "actors": self.actors,
+            "keywords": self.keywords
         }
