@@ -6,6 +6,7 @@ from tmdb.client import TMDBClient
 from tmdb import endpoints, helper
 from db.connection import get_connection
 from db import queries
+from vectorized_db import v_helpers
 
 #---------------------------------------
 #GenreMov SECTION
@@ -112,6 +113,29 @@ def get_movies(client, connection, cursor, date, page):
 #Return Number of Pages of Date
     return response["total_pages"]
 
+#---------------------------------------
+
+def vectorized_movies(connection, cursor, year):
+    try:
+        results_movies, column_names = queries.get_year_movies(cursor, year)
+        movie_df = pd.DataFrame(results_movies, columns=column_names)
+        
+        df_vectorized = v_helpers.movie_vectorized_table(cursor, movie_df)
+        
+        for index, movie in df_vectorized.iterrows():
+            try:
+                queries.insert_vectorized_movie(cursor, movie)
+            except Exception as e:
+                logging.error(f"Loop Insert Vectorized Movie error: {type(e).__name__}: {e}")
+                time.sleep(5)
+                continue
+        
+        connection.commit()
+        
+    except Exception as e:
+        logging.error(f"Get Year Movie error: {type(e).__name__}: {e}")
+        time.sleep(5)
+
 if __name__ == "__main__":
 
     logging.basicConfig(
@@ -130,18 +154,24 @@ if __name__ == "__main__":
     
     #Get Movies
     dateList = helper.generate_dateList(START_DATE_EXTRACTION, END_DATE_EXTRACTION)
-    for date in dateList:
-        try:
-            page = 1
-            pageNum = get_movies(client, connection, cursor, str(date), int(page))
-            page += 1
-            while page <= pageNum:
-                get_movies(client, connection, cursor, str(date), int(page))
+    for year in dateList:
+
+        for date in dateList[year]:
+            try:
+                page = 1
+                pageNum = get_movies(client, connection, cursor, str(date), int(page))
                 page += 1
-        except Exception as e:
-            logging.error(f"Loop Insert Movie error: {type(e).__name__}: {e}")
-            time.sleep(60)
-            continue
+                while page <= pageNum:
+                    get_movies(client, connection, cursor, str(date), int(page))
+                    page += 1
+            except Exception as e:
+                logging.error(f"Loop Insert Movie error: {type(e).__name__}: {e}")
+                time.sleep(60)
+                continue
+        
+        #Vectorice Movies
+        vectorized_movies(connection, cursor, year)
+        
 
     cursor.close()
     connection.close()

@@ -7,7 +7,7 @@ TIMEOUT = 60
 
 #PERIOD DATE EXTRACTION
 START_DATE_EXTRACTION = "2020-01-01"
-END_DATE_EXTRACTION = "2025-12-31"
+END_DATE_EXTRACTION = "2026-12-31"
 
 #IMAGE PATH
 BASE_IMG_URL = "https://image.tmdb.org/t/p/w500"
@@ -20,6 +20,22 @@ DB_PORT=3306
 DB_USER="REG"
 DB_PASWORD="Aa123456"
 DB_NAME="TV_MOVIES_DB"
+
+#MOVIE WIGHTS
+w_adult = 2
+w_original_lenguaje = 4
+w_title = 3
+w_keywords = 5
+w_popularity = 3
+w_date = 3
+w_director = 5
+w_actors = 5
+w_vote_average = 3
+w_vote_count = 3
+w_Genre = 7
+
+#TOTAL WIGHTS
+TOTAL_WIGHT = 43
 
 #-----------------------------------------------------
 # Local Test

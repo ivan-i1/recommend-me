@@ -40,14 +40,20 @@ def generate_dateList(start_date: str, end_date: str):
 
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
-
-    dateList = []
-
-    while start <= end:
-        dateList.append(start.strftime("%Y-%m-%d"))
-        start += timedelta(days=1)
-
-    return dateList
+    
+    year_dict = {}
+    current_date = start
+    
+    while current_date <= end:
+        year_key = current_date.strftime("%Y")
+        
+        if year_key not in year_dict:
+            year_dict[year_key] = []
+            
+        year_dict[year_key].append(current_date.strftime("%Y-%m-%d"))
+        current_date += timedelta(days=1)
+    
+    return year_dict
 
 def extract_keywords(text, n=4):
 

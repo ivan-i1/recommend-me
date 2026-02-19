@@ -22,6 +22,22 @@ CREATE TABLE IF NOT EXISTS Movies (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS Vectorized_Movies (
+  id INT PRIMARY KEY,
+  adult JSON,
+  original_lenguaje JSON,
+  title JSON,
+  keywords JSON,
+  popularity JSON,
+  release_date JSON,
+  director JSON,
+  actors JSON,
+  vote_average JSON,
+  vote_count JSON,
+  gender JSON,
+  movie_vector JSON
+);
+
 CREATE TABLE IF NOT EXISTS GenreMov (
 	id INT AUTO_INCREMENT PRIMARY KEY,
   	id_genre_tmdb INT NOT NULL,

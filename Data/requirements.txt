@@ -1,20 +1,22 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.0.1+cpu
 
-huggingface-hub==0.20.3
+# ---------- Core ----------
+numpy==1.24.4
+pandas==1.5.3
 
+# ---------- Vector search ----------
+faiss-cpu==1.7.4
+
+# ---------- ML / NLP ----------
 sentence-transformers==2.2.2
 transformers==4.30.2
+huggingface-hub==0.20.3
+gensim==4.3.3
 keybert==0.8.0
 
-requests==2.31.0
+# ---------- DB / Infra ----------
 mysql-connector-python==8.1.0
-pandas==2.1.4
-numpy==1.24.3
-
-# keybert==0.8.0
-# pandas==2.1.4
-# numpy==1.24.3
-# requests==2.31.0
-# mysql-connector-python==8.1.0
+requests==2.31.0
+mmh3==4.0.1
 
