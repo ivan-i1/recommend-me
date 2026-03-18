@@ -43,10 +43,13 @@ class Movies(models.Model):
     backdrop_path = models.CharField(max_length=150, blank=True, null=True)
     original_lenguaje = models.CharField(max_length=50, blank=True, null=True)
     overview = models.TextField(blank=True, null=True)
+    keywords = models.JSONField()
     popularity = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
     poster_path = models.CharField(max_length=150, blank=True, null=True)
     release_date = models.DateField(blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
+    director = models.CharField(max_length=255, blank=True, null=True)
+    actors = models.JSONField()
     vote_average = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
     vote_count = models.IntegerField(blank=True, null=True)
     image_path = models.CharField(max_length=255, blank=True, null=True)
@@ -111,3 +114,22 @@ class TvProviders(models.Model):
         managed = False
         db_table = 'TV_Providers'
         unique_together = (('tv', 'provider'),)
+
+class Vectorized_Movies(models.Model):
+    id = models.IntegerField(primary_key=True)
+    adult = models.JSONField()
+    original_lenguaje = models.JSONField() 
+    title = models.JSONField()
+    keywords = models.JSONField()
+    popularity = models.JSONField()
+    release_date = models.JSONField()
+    director = models.JSONField()
+    actors = models.JSONField()
+    vote_average = models.JSONField()
+    vote_count = models.JSONField()
+    gender = models.JSONField()  
+    movie_vector = models.JSONField()
+
+    class Meta:
+        managed = False
+        db_table = 'Vectorized_Movies'
