@@ -4,4 +4,4 @@ from ..models import Genremov
 class GenreMovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genremov   
-        fields = '__all__' 
+        fields = ['id','name'] 

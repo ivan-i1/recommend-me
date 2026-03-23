@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-vmch)las$vm%*y^t0nrd5cd5nk#!o#%r4k_9cy)t1#6kxp%**_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -81,8 +81,8 @@ DATABASES = {
         'NAME': 'TV_MOVIES_DB',
         'USER': 'REG',
         'PASSWORD': 'Aa123456',
-        'HOST': '127.0.0.1',  # o localhost
-        'PORT': '3307',        # el puerto que expones en Docker
+        'HOST': 'mysql',  # o localhost
+        'PORT': '3306',        # el puerto que expones en Docker
     }
 }
 

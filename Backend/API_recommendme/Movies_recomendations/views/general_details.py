@@ -13,7 +13,7 @@ class GenreMovieViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     serializer_class = GenreMovieSerializer
 
     @action(detail=False, methods=['get'])
-    def genre(self, request):
+    def genres(self, request):
         
         serializer = self.get_serializer(self.queryset, many=True)
         response = serializer.data

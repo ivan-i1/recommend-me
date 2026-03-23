@@ -26,6 +26,7 @@ services:
 
   data:
     build: ./Data
+    profiles: ["full-setup", "data-only"]
     depends_on:
       mysql:
         condition: service_healthy
@@ -33,6 +34,18 @@ services:
     - ./logs:/app/logs
     - ./Data/img_recommendMe:/app/images
     restart: "no"
+
+  backend:
+    build: ./Backend
+    profiles: ["full-setup", "backend-only"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./Backend:/app  # MONTAJE EN VIVO: cambios se reflejan al instante
+    command: python API_recommendme/manage.py runserver 0.0.0.0:8000
 
 volumes:
   mysql_data:
