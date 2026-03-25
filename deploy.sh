@@ -18,6 +18,7 @@ echo "Filling Database"
 sleep 5
 
 #docker compose up --build Backend
+
 docker compose --profile backend-only up --build backend
 docker compose --profile backend-only exec backend python API_recommendme/manage.py migrate
 

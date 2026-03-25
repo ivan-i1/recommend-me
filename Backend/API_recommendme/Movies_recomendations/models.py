@@ -117,6 +117,7 @@ class TvProviders(models.Model):
 
 class Vectorized_Movies(models.Model):
     id = models.IntegerField(primary_key=True)
+    id_tmdb = models.IntegerField(unique=True)
     adult = models.JSONField()
     original_lenguaje = models.JSONField() 
     title = models.JSONField()

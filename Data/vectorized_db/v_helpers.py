@@ -139,6 +139,7 @@ def movie_get_gender_movie(cursor, movie_id, dimension=7):
 def movie_vectorized_table(cursor, movie_df: pd.DataFrame) -> pd.DataFrame:
     df_vectorized = pd.DataFrame({
         "id": movie_df['id'],
+        "id_tmdb": movie_df['id_tmdb'],
         'adult': movie_df['adult'].apply(lambda x: movie_multiply_num_vector(x, 2)),
         'original_lenguaje': movie_df['original_lenguaje'].apply(lambda x: movie_hashing_trick(x, 4)),
         'title': movie_df['title'].apply(lambda x: movie_hashing_trick_list(x, 3)),

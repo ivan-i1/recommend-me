@@ -140,7 +140,6 @@ if __name__ == "__main__":
 
     logging.basicConfig(
         filename="/app/logs/app.log",
-        #filename="../logs/app.log",
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
         )

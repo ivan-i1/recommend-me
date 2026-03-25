@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS Movies (
 
 CREATE TABLE IF NOT EXISTS Vectorized_Movies (
   id INT PRIMARY KEY,
+  id_tmdb INT NOT NULL UNIQUE,
   adult JSON,
   original_lenguaje JSON,
   title JSON,

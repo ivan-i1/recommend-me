@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 
 from ..models import Genremov
-from ..serializers.general_details import GenreMovieSerializer
+from ..serializers.general_details import GenreMovieSerializer, GenreRequestSerializer
 
 
 class GenreMovieViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -14,7 +14,15 @@ class GenreMovieViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
 
     @action(detail=False, methods=['get'])
     def genres(self, request):
+
+        request_serializer = GenreRequestSerializer(
+            data=request.query_params,
+            context={"request": request}
+        )
+        request_serializer.is_valid(raise_exception=True)
+
         
         serializer = self.get_serializer(self.queryset, many=True)
         response = serializer.data
         return Response(response, status=status.HTTP_200_OK)
+

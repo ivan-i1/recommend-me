@@ -38,13 +38,14 @@ def insert_vectorized_movie(cursor, movie):
     
     query = """
     INSERT INTO Vectorized_Movies 
-    (id, adult, original_lenguaje, title, keywords, popularity, 
+    (id, id_tmdb, adult, original_lenguaje, title, keywords, popularity, 
      release_date, director, actors, vote_average, vote_count, gender, movie_vector) 
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     
     cursor.execute(query, (
-        movie["id"],                    # ID es INT, no necesita conversión
+        movie["id"],
+        movie["id_tmdb"], 
         to_json(movie["adult"]),
         to_json(movie["original_lenguaje"]),
         to_json(movie["title"]),
