@@ -1,25 +1,24 @@
 import os
 
-#TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "TU_API_KEY")
-TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0YmQ1YjNiMzUxNjFjOTdkOWI3ZjQ3NTczYjk3YWM0YSIsIm5iZiI6MTc2NDM0NzA0Ny45ODcsInN1YiI6IjY5MjljY2E3ZTI1ODJmNDY3NGQ5ZDcxMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.lVsf_j3-WvPuEefiYh2WKO5yCDxVGguRStLeF1lq4Sc"
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
 BASE_URL = "https://api.themoviedb.org/3"
 TIMEOUT = 60
 
 #PERIOD DATE EXTRACTION
 START_DATE_EXTRACTION = "2020-01-01"
-END_DATE_EXTRACTION = "2020-03-01"
+END_DATE_EXTRACTION = "2020-01-10"
 
 #IMAGE PATH
 BASE_IMG_URL = "https://image.tmdb.org/t/p/w500"
-POSTER_IMG_PATH = "/app/images/"
-INTERNAL_IMG_SAVE_PATH = "Data/img_recommendMe/"
+POSTER_IMG_PATH = os.environ.get("POSTER_IMG_PATH")
+INTERNAL_IMG_SAVE_PATH = os.environ.get("INTERNAL_IMG_SAVE_PATH")
 
 #CONECTION DB
-DB_HOST="mysql"
-DB_PORT=3306
-DB_USER="REG"
-DB_PASWORD="Aa123456"
-DB_NAME="TV_MOVIES_DB"
+DB_HOST = os.environ.get("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT")
+DB_USER = os.environ.get("MYSQL_USER")
+DB_PASWORD = os.environ.get("MYSQL_PASSWORD")
+DB_NAME = os.environ.get("MYSQL_DATABASE")
 
 #MOVIE WIGHTS
 w_adult = 2
@@ -36,10 +35,3 @@ w_Genre = 7
 
 #TOTAL WIGHTS
 TOTAL_WIGHT = 43
-
-#-----------------------------------------------------
-# Local Test
-# POSTER_IMG_PATH = "/Users/rodrigoesparza/Documents/Freelance_Projects/recommend-me/Data/img_recommendMe/"
-# DB_HOST="127.0.0.1"
-# DB_PORT=3307
-#-----------------------------------------------------

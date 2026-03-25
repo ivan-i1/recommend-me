@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,12 +78,12 @@ WSGI_APPLICATION = 'API_recommendme.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'TV_MOVIES_DB',
-        'USER': 'REG',
-        'PASSWORD': 'Aa123456',
-        'HOST': 'mysql',  # o localhost
-        'PORT': '3306',        # el puerto que expones en Docker
+        'ENGINE': os.environ.get("ENGINE"),
+        'NAME': os.environ.get("MYSQL_DATABASE"),
+        'USER': os.environ.get("MYSQL_USER"),
+        'PASSWORD': os.environ.get("MYSQL_PASSWORD"),
+        'HOST': os.environ.get("DB_HOST"),  # o localhost
+        'PORT': os.environ.get("DB_PORT"),        # el puerto que expones en Docker
     }
 }
 

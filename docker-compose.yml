@@ -6,13 +6,16 @@ services:
     container_name: mysql_recommendMe
     restart: unless-stopped
 
+    env_file:
+      - .env
+
     environment:
-      MYSQL_ROOT_PASSWORD: Aa123456       
-      MYSQL_DATABASE: TV_MOVIES_DB  
-      MYSQL_USER: REG               
-      MYSQL_PASSWORD: Aa123456             
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}       
+      MYSQL_DATABASE: ${MYSQL_DATABASE} 
+      MYSQL_USER: ${MYSQL_USER}              
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}           
     ports:
-      - "3307:3306"
+      - "3306:3306"
 
     volumes:
       - mysql_data:/var/lib/mysql
@@ -26,6 +29,8 @@ services:
 
   data:
     build: ./Data
+    env_file:
+      - .env
     profiles: ["full-setup", "data-only"]
     depends_on:
       mysql:
@@ -37,6 +42,8 @@ services:
 
   backend:
     build: ./Backend
+    env_file:
+      - .env
     profiles: ["full-setup", "backend-only"]
     ports:
       - "8000:8000"
@@ -44,7 +51,7 @@ services:
       mysql:
         condition: service_healthy
     volumes:
-      - ./Backend:/app  # MONTAJE EN VIVO: cambios se reflejan al instante
+      - ./Backend:/app 
     command: python API_recommendme/manage.py runserver 0.0.0.0:8000
 
 volumes:
