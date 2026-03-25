@@ -52,6 +52,7 @@ services:
         condition: service_healthy
     volumes:
       - ./Backend:/app 
+      - ./Data/img_recommendMe:/app/media
     command: python API_recommendme/manage.py runserver 0.0.0.0:8000
 
 volumes:

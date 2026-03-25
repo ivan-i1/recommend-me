@@ -1,17 +1,19 @@
 from rest_framework import serializers
 from ..models import Movies, Vectorized_Movies, MovieGenres
 import json
+import os
 
 class MovieSerializer(serializers.ModelSerializer):
 
     vector = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Movies   
         fields = ['id', 'id_tmdb', 'adult', 'original_lenguaje', 
                   'overview', 'release_date', 'title', 'genres', 'director', 
-                  'actors', 'vote_average', 'vote_count', 'image_path', 
+                  'actors', 'vote_average', 'vote_count', 'image_url', 
                   'vector']
 
     def get_vector(self, obj):
@@ -28,6 +30,14 @@ class MovieSerializer(serializers.ModelSerializer):
             }
             for mg in movie_genres
         ]
+
+    def get_image_url(self, obj):
+        request = self.context.get("request")
+        if not obj.image_path:
+            return None
+
+        filename = os.path.basename(obj.image_path)
+        return request.build_absolute_uri(f"/media/{filename}")
 
     
 
