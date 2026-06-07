@@ -121,18 +121,19 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
                 'total': 0
             }, status=status.HTTP_404_NOT_FOUND)
 
-        #Get Vectors from Movies
-        all_vectors_query = Vectorized_Movies.objects.filter(id__in=id_list).values_list('movie_vector', flat=True)
+        #Get Vectors from Movies (preserving ID order aligned with FAISS index)
+        vectorized_qs = Vectorized_Movies.objects.filter(id__in=id_list).values_list('id', 'movie_vector')
+        actual_ids = [row[0] for row in vectorized_qs]
+        vectors = [row[1] for row in vectorized_qs]
 
-        #Get Closest Vectors
-        ids_movies = get_distance_vectors(43, all_vectors_query, query_vector, 5)
-        if hasattr(ids_movies, 'flatten'):
-            ids_movies = (ids_movies + 1).flatten()
-        else:
-            ids_movies = [id + 1 for id in ids_movies]
+        #Get Closest Vectors (returns positional indices into `vectors` array)
+        faiss_indices = get_distance_vectors(43, vectors, query_vector, 5).flatten()
+
+        #Map FAISS positional indices back to real movie IDs
+        ids_movies = [actual_ids[i] for i in faiss_indices if i < len(actual_ids)]
 
         #Pick Randoms ids
-        ids_selected = np.random.choice(ids_movies.tolist(), size=2, replace=False).tolist()
+        ids_selected = np.random.choice(ids_movies, size=2, replace=False).tolist()
         selected_movies = Movies.objects.filter(id__in=list(ids_selected))
 
         #Response
