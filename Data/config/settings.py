@@ -6,10 +6,8 @@ BASE_URL = "https://api.themoviedb.org/3"
 TIMEOUT = 60
 
 #PERIOD DATE EXTRACTION
-START_DATE_EXTRACTION = "2026-04-01"
-# END_DATE_EXTRACTION = date.today().strftime("%Y-%m-%d")
-
-END_DATE_EXTRACTION = "2026-06-01"
+START_DATE_EXTRACTION = "1950-01-01"
+END_DATE_EXTRACTION = date.today().strftime("%Y-%m-%d")
 
 #IMAGE PATH
 BASE_IMG_URL = "https://image.tmdb.org/t/p/w500"
