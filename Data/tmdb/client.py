@@ -32,8 +32,10 @@ class TMDBClient:
             logging.error(f"Request error: {e}")
             raise
 
-    def get_img(self,poster_path, img_name):
-        img_save_path = f"{POSTER_IMG_PATH}{img_name}"
+    def get_img(self, poster_path, img_name, save_dir=None):
+        if save_dir is None:
+            save_dir = POSTER_IMG_PATH
+        img_save_path = f"{save_dir}{img_name}"
         url = f"{BASE_IMG_URL}{poster_path}"
 
         logging.info(f"GET_IMG {url}")

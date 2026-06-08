@@ -35,6 +35,7 @@ services:
     volumes:
     - ./logs:/app/logs
     - ./Data/img_recommendMe:/app/images
+    - ./Data/img_logo_providers:/app/logos
     restart: "no"
 
   backend:
@@ -48,8 +49,9 @@ services:
       mysql:
         condition: service_healthy
     volumes:
-      - ./Backend:/app 
+      - ./Backend:/app
       - ./Data/img_recommendMe:/app/media
+      - ./Data/img_logo_providers:/app/logos
     command: python API_recommendme/manage.py runserver 0.0.0.0:8000
 
 volumes:

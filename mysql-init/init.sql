@@ -1,24 +1,26 @@
 #-----------------------------------------------------------------
-#CREATE MOVIE SECTION
+# CREATE MOVIE SECTION
 #-----------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS Movies (
   id INT AUTO_INCREMENT PRIMARY KEY,
   id_tmdb INT NOT NULL UNIQUE,
   adult BOOLEAN,
-  backdrop_path VARCHAR(150),
-  original_lenguaje VARCHAR(50),
+  backdrop_path VARCHAR(255),
+  original_language VARCHAR(50),
   overview TEXT,
-  keywords VARCHAR(255),
+  keywords TEXT,
   popularity DECIMAL(10, 3),
-  poster_path VARCHAR(150),
+  poster_path VARCHAR(255),
   release_date DATE,
   title VARCHAR(255),
   director VARCHAR(255),
-  actors VARCHAR(510),
+  actors TEXT,
   vote_average DECIMAL(10, 3),
   vote_count INT,
   image_path VARCHAR(255),
+  trailer_path VARCHAR(255),
+  all_actors TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -26,7 +28,7 @@ CREATE TABLE IF NOT EXISTS Vectorized_Movies (
   id INT PRIMARY KEY,
   id_tmdb INT NOT NULL UNIQUE,
   adult JSON,
-  original_lenguaje JSON,
+  original_language JSON,
   title JSON,
   keywords JSON,
   popularity JSON,
@@ -35,58 +37,107 @@ CREATE TABLE IF NOT EXISTS Vectorized_Movies (
   actors JSON,
   vote_average JSON,
   vote_count JSON,
-  gender JSON,
-  movie_vector JSON
+  genres JSON,
+  movie_vector JSON,
+
+  FOREIGN KEY (id) 
+    REFERENCES Movies(id) 
+    ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS GenreMov (
-	id INT AUTO_INCREMENT PRIMARY KEY,
-  	id_genre_tmdb INT NOT NULL,
-  	name VARCHAR(150)
- );
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_genre_tmdb INT NOT NULL UNIQUE,
+  name VARCHAR(150) NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS Movie_Genres (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    movie_id INT NOT NULL,
-    genre_id INT NOT NULL,
-    
-    FOREIGN KEY (movie_id) 
-        REFERENCES Movies(id) 
-        ON DELETE CASCADE,
-    
-    FOREIGN KEY (genre_id) 
-        REFERENCES GenreMov(id) 
-        ON DELETE CASCADE,
-    
-    UNIQUE KEY unique_movie_genre (movie_id, genre_id),
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  movie_id INT NOT NULL,
+  genre_id INT NOT NULL,
+
+  FOREIGN KEY (movie_id) 
+    REFERENCES Movies(id) 
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (genre_id) 
+    REFERENCES GenreMov(id) 
+    ON DELETE CASCADE,
+
+  UNIQUE KEY unique_movie_genre (movie_id, genre_id),
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS ProvidersMov (
-	id INT AUTO_INCREMENT PRIMARY KEY,
-  	id_provider_tmdb INT NOT NULL,
-  	name VARCHAR(150)
- );
+#-----------------------------------------------------------------
+# CREATE PROVIDERS SECTION
+#-----------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS Providers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tmdb_provider_id INT UNIQUE NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  logo_path VARCHAR(255),
+  website_url VARCHAR(355),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS Countries (
+  code VARCHAR(2) PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS Provider_Countries (
+  provider_id INT NOT NULL,
+  country_code VARCHAR(2) NOT NULL,
+  media_type ENUM('movie', 'tv') NOT NULL,
+  display_priority INT,
+
+  PRIMARY KEY (provider_id, country_code, media_type),
+
+  FOREIGN KEY (provider_id) 
+    REFERENCES Providers(id) 
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (country_code) 
+    REFERENCES Countries(code) 
+    ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS Movie_Providers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    movie_id INT NOT NULL,
-    provider_id INT NOT NULL,
-    
-    FOREIGN KEY (movie_id) 
-        REFERENCES Movies(id) 
-        ON DELETE CASCADE,
-    
-    FOREIGN KEY (provider_id) 
-        REFERENCES ProvidersMov(id) 
-        ON DELETE CASCADE,
-    
-    UNIQUE KEY unique_movie_genre (movie_id, provider_id),
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  movie_id INT NOT NULL,
+  provider_id INT NOT NULL,
+  country_code VARCHAR(2) NOT NULL,
+  provider_type ENUM('flatrate', 'rent', 'buy', 'free', 'ads') NOT NULL,
+  link VARCHAR(500),
+
+  PRIMARY KEY (movie_id, provider_id, country_code, provider_type),
+
+  FOREIGN KEY (movie_id) 
+    REFERENCES Movies(id) 
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (provider_id) 
+    REFERENCES Providers(id) 
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (country_code) 
+    REFERENCES Countries(code) 
+    ON DELETE CASCADE
 );
 
+CREATE INDEX idx_movie_providers_movie_country
+ON Movie_Providers(movie_id, country_code);
+
+CREATE INDEX idx_movie_providers_country
+ON Movie_Providers(country_code);
+
+CREATE INDEX idx_provider_countries_country_media
+ON Provider_Countries(country_code, media_type);
+
+CREATE INDEX idx_providers_tmdb_provider_id
+ON Providers(tmdb_provider_id);
 
 #-----------------------------------------------------------------
 #CREATE TV SECTION

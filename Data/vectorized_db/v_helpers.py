@@ -141,7 +141,7 @@ def movie_vectorized_table(cursor, movie_df: pd.DataFrame) -> pd.DataFrame:
         "id": movie_df['id'],
         "id_tmdb": movie_df['id_tmdb'],
         'adult': movie_df['adult'].apply(lambda x: movie_multiply_num_vector(x, 2)),
-        'original_lenguaje': movie_df['original_lenguaje'].apply(lambda x: movie_hashing_trick(x, 4)),
+        'original_language': movie_df['original_language'].apply(lambda x: movie_hashing_trick(x, 4)),
         'title': movie_df['title'].apply(lambda x: movie_hashing_trick_list(x, 3)),
         'keywords': movie_df['keywords'].apply(lambda x: movie_top_words_5_vector(ast.literal_eval(x))),
         'popularity': movie_df['popularity'].apply(lambda x: movie_multiply_num_vector(x, 3)),
@@ -150,12 +150,12 @@ def movie_vectorized_table(cursor, movie_df: pd.DataFrame) -> pd.DataFrame:
         'actors': movie_df['actors'].apply(lambda x: movie_hashing_trick_list(safe_literal_eval(x), 5)),
         'vote_average': movie_df['vote_average'].apply(lambda x: movie_multiply_num_vector(x, 3)),
         'vote_count': movie_df['vote_count'].apply(lambda x: movie_multiply_num_vector(float(x) / 1000, 3)),
-        'gender': movie_df['id'].apply(lambda x: movie_get_gender_movie(cursor, x,7))
+        'genres': movie_df['id'].apply(lambda x: movie_get_gender_movie(cursor, x,7))
     })
 
-    vector_columns = ['adult','original_lenguaje','title','keywords','popularity',
+    vector_columns = ['adult','original_language','title','keywords','popularity',
                     'release_date', 'director', 'actors', 'vote_average',
-                    'vote_count', 'gender']
+                    'vote_count', 'genres']
     df_vectorized['movie_vector'] = df_vectorized[vector_columns].apply(
         lambda row: np.concatenate([row[col] for col in vector_columns]),
         axis=1

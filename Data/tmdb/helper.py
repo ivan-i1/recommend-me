@@ -1,10 +1,13 @@
 from db.modules.movie import Movie
 from db.modules.genreMov import GenreMov
+from db.modules.provider import Provider
+from db.modules.country import Country
 from datetime import datetime, timedelta
-from config.settings import POSTER_IMG_PATH
+from config.settings import POSTER_IMG_PATH, LOGO_IMG_PATH
 import requests
 import re
 from keybert import KeyBERT
+from tmdb import endpoints, helper
 
 
 
@@ -69,3 +72,99 @@ def extract_keywords(text, n=4):
     )
 
     return str([word for word, sim in keywords])
+
+def get_videoMovie(client, movie_id, original_language=None):
+    def fetch_videos(language):
+        param = endpoints.videos_movies(movie_id, language=language)
+        response = client.get(endpoint=param["endpoint"], params=param["params"])
+        return response.get("results", [])
+
+    def find_trailer(results):
+        return next((v for v in results if v.get("type") == "Trailer" and v.get("site") == "YouTube"), None)
+
+    def find_any_video(results):
+        return next((v for v in results if v.get("site") == "YouTube"), None)
+
+    def to_url(video):
+        return f"https://www.youtube.com/watch?v={video['key']}"
+
+    # 1. Trailer en inglés
+    en_results = fetch_videos("en-US")
+    trailer = find_trailer(en_results)
+    if trailer:
+        return to_url(trailer)
+
+    # 2. Trailer en idioma original
+    if original_language and original_language != "en":
+        lang_code = f"{original_language}-{original_language.upper()}"
+        orig_results = fetch_videos(lang_code)
+        trailer = find_trailer(orig_results)
+        if trailer:
+            return to_url(trailer)
+
+        # 3. Cualquier video en idioma original (Teaser, Clip, etc.)
+        video = find_any_video(orig_results)
+        if video:
+            return to_url(video)
+
+    # 4. Cualquier video en inglés
+    video = find_any_video(en_results)
+    if video:
+        return to_url(video)
+
+    return None
+
+def extract_providers_list(response_json):
+    providers = []
+    provider_countries = {}
+
+    for item in response_json.get("results", []):
+        provider = Provider(item)
+        providers.append(provider.to_json())
+
+        tmdb_id = item["provider_id"]
+        provider_countries[tmdb_id] = [
+            {"country_code": code, "display_priority": priority}
+            for code, priority in item.get("display_priorities", {}).items()
+        ]
+
+    return providers, provider_countries
+
+def extract_countries_list(response_json):
+    return [Country(item).to_json() for item in response_json.get("results", [])]
+
+_PROVIDER_TYPES = ['flatrate', 'rent', 'buy', 'free', 'ads']
+
+def extract_movie_providers_list(response_json):
+    entries = []
+    for country_code, country_data in response_json.get("results", {}).items():
+        link = country_data.get("link")
+        for provider_type in _PROVIDER_TYPES:
+            for provider in country_data.get(provider_type, []):
+                entries.append({
+                    "country_code": country_code,
+                    "tmdb_provider_id": provider.get("provider_id"),
+                    "provider_type": provider_type,
+                    "link": link
+                })
+    return entries
+
+def get_all_actors(client, movie_id):
+    param = endpoints.credits_movies(movie_id)
+    response = client.get(endpoint=param["endpoint"], params=param["params"])
+
+    cast = response.get("cast", [])
+    if not cast:
+        return []
+
+    sorted_cast = sorted(cast, key=lambda x: x.get("order", 9999))
+    return [member["name"] for member in sorted_cast[:20]]
+
+def get_logo_provider(client, logo_path, provider_id, provider_name):
+    if not logo_path:
+        return None
+    ext = logo_path.rsplit(".", 1)[-1]
+    clean_name = helper.clean_text(f"{provider_id}_{provider_name}")
+    img_name = f"{clean_name}.{ext}"
+    client.get_img(logo_path, img_name, save_dir=LOGO_IMG_PATH)
+    return f"Data/img_logo_providers/{img_name}"

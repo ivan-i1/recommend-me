@@ -215,10 +215,12 @@ __marimo__/
 
 #Ignore img and Logs
 Data/img_recommendMe/*
+Data/img_logo_providers/*
 logs/*
 
 # Get Folder Empty .gitkeep
 !Data/img_recommendMe/.gitkeep
+!Data/img_logo_providers/.gitkeep
 !logs/.gitkeep
 
 # Local dev overrides — never push to production

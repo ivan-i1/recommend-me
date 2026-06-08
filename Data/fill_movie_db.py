@@ -30,6 +30,95 @@ def get_genreMov(client, connection, cursor):
 #---------------------------------------
 
 #---------------------------------------
+#Regiones Movie SECTION
+#---------------------------------------
+def get_regions(client, connection, cursor):
+    param = endpoints.watch_provider_regions()
+    response = client.get(endpoint=param["endpoint"], params=param["params"])
+
+    countries = helper.extract_countries_list(response)
+
+    for country in countries:
+        try:
+            queries.insert_country(cursor, country)
+        except Exception as e:
+            logging.error(f"Insert Country error: {type(e).__name__}: {e}")
+
+    connection.commit()
+#---------------------------------------
+
+#---------------------------------------
+#Provitors SECTION
+#---------------------------------------
+def get_providers(client, connection, cursor):
+    param = endpoints.watch_providers_movies()
+    response = client.get(endpoint=param["endpoint"], params=param["params"])
+
+    providers, provider_countries = helper.extract_providers_list(response)
+
+    # Insert Providers
+    for provider in providers:
+        try:
+            #Download Logo
+            logo_path = helper.get_logo_provider(client, provider["logo_path"], provider["tmdb_provider_id"], provider["name"])
+            provider["logo_path"] = logo_path
+            #Insert Provider
+            queries.insert_provider(cursor, provider)
+        except Exception as e:
+            logging.error(f"Insert Provider error: {type(e).__name__}: {e}")
+
+    connection.commit()
+
+    # Insert Countries (placeholder) + Provider_Countries
+    for tmdb_provider_id, countries in provider_countries.items():
+        try:
+            provider_db_id = queries.get_provider_id(cursor, tmdb_provider_id)
+            for entry in countries:
+                try:
+                    queries.insert_country_if_not_exists(cursor, entry["country_code"])
+                    queries.insert_provider_country(
+                        cursor,
+                        provider_db_id,
+                        entry["country_code"],
+                        "movie",
+                        entry["display_priority"]
+                    )
+                except Exception as e:
+                    logging.error(f"Insert ProviderCountry error ({tmdb_provider_id} - {entry['country_code']}): {type(e).__name__}: {e}")
+        except Exception as e:
+            logging.error(f"Loop ProviderCountry error: {type(e).__name__}: {e}")
+
+    connection.commit()
+#---------------------------------------
+
+#---------------------------------------
+#Provitors Movie SECTION
+#---------------------------------------
+def get_movie_providers(client, connection, cursor, tmdb_movie_id):
+    movie_db_id = queries.get_movie_id(cursor, tmdb_movie_id)
+    if movie_db_id is None:
+        logging.warning(f"Movie {tmdb_movie_id} not found in DB, skipping.")
+        return
+
+    param = endpoints.movie_watch_providers(tmdb_movie_id)
+    response = client.get(endpoint=param["endpoint"], params=param["params"])
+
+    entries = helper.extract_movie_providers_list(response)
+
+    for entry in entries:
+        try:
+            provider_db_id = queries.get_provider_id(cursor, entry["tmdb_provider_id"])
+            if provider_db_id is None:
+                logging.warning(f"Provider {entry['tmdb_provider_id']} not in DB, skipping.")
+                continue
+            queries.insert_movie_provider(cursor, movie_db_id, provider_db_id, entry["country_code"], entry["provider_type"], entry.get("link"))
+        except Exception as e:
+            logging.error(f"Insert MovieProvider error ({tmdb_movie_id} - {entry}): {type(e).__name__}: {e}")
+
+    connection.commit()
+#---------------------------------------
+
+#---------------------------------------
 #Movie SECTION
 #---------------------------------------
 
@@ -87,10 +176,21 @@ def get_movies(client, connection, cursor, date, page):
                 movie["img_path"] = img_path
                 client.get_img(download_path, img_name)
 
+            #Get all actors
+            movie["all_actors"] = str(helper.get_all_actors(client, movie["id_tmdb"]))
+
+            #Get Trailer of Movie
+            youtubeVideo = helper.get_videoMovie(client, movie["id_tmdb"], movie["original_language"])
+            movie["trailer_path"] = youtubeVideo
+
             #Insert in DB
             queries.insert_movie(cursor, movie)
+
+            #Insert Provitors of Movie
+            get_movie_providers(client, connection, cursor, movie["id_tmdb"])
         except Exception as e:
             logging.error(f"Insert Movie error: {type(e).__name__}: {e}")
+
 
     connection.commit()
 #---------------------------------------
@@ -146,10 +246,14 @@ if __name__ == "__main__":
     client = TMDBClient()
     connection = get_connection()
     cursor = connection.cursor(buffered=True)
-    
+
     #Get Genders of Movies
     get_genreMov(client, connection, cursor)
-    
+
+    #Get Regions and Providers (must run before movies so Movie_Providers can link correctly)
+    get_regions(client, connection, cursor)
+    get_providers(client, connection, cursor)
+
     #Get Movies
     dateList = helper.generate_dateList(START_DATE_EXTRACTION, END_DATE_EXTRACTION)
     for year in dateList:
@@ -166,7 +270,7 @@ if __name__ == "__main__":
                 logging.error(f"Loop Insert Movie error: {type(e).__name__}: {e}")
                 time.sleep(60)
                 continue
-        
+
         #Vectorice Movies
         vectorized_movies(connection, cursor, year)
         

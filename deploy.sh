@@ -1,27 +1,39 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-echo "Start deploying..."
+echo "Starting full deploy from scratch..."
 
+# Confirmation prompt to avoid accidental data loss
+read -p "WARNING: This will DELETE the current database and all data. Continue? [y/N] " confirm
+if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "Deploy cancelled."
+    exit 0
+fi
+
+# Remove containers, networks, and volumes (wipes DB)
+echo "Cleaning up containers and volumes..."
 docker system prune -f
 docker compose down -v
+
+# Build all images
+echo "Building images..."
 docker compose build
+
+# Start MySQL
+echo "Starting MySQL..."
 docker compose up -d mysql
 
-echo "Waiting MySQL..."
-sleep 60
+# Wait until MySQL is actually healthy instead of a fixed sleep
+echo "Waiting for MySQL to be ready..."
+until docker compose exec mysql mysqladmin ping -h localhost --silent 2>/dev/null; do
+    echo "  MySQL not ready yet, retrying in 5s..."
+    sleep 5
+done
+echo "MySQL is ready."
 
-echo "Filling Database"
+# Fill the database — runs genres, regions, providers, movies, vectors
+echo "Filling database (this may take a while)..."
+docker compose --profile data-only run --rm data python fill_movie_db.py
+echo "Database filled."
 
-#docker compose up --build data
-docker compose --profile data-only up --build data
-
-echo "Filled Database"
-sleep 5
-
-#docker compose up --build Backend
-
-docker compose --profile backend-only up --build -d backend
-docker compose --profile backend-only exec backend python API_recommendme/manage.py migrate
-
-echo "API Running"
+echo "Database filled. Run start_backend.sh to start the API."
