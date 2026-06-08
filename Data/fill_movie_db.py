@@ -103,7 +103,6 @@ def get_movies(client, connection, cursor, date, page):
             id_mov = queries.get_movie_id(cursor, movie_id)
             for genre in movie_genre_json[movie_id]:
                 id_gen = queries.get_genreMov_id(cursor, genre)
-                connection.commit()
                 queries.insert_movie_genres(cursor, id_mov, id_gen)
         except Exception as e:
             logging.error(f"Insert Movie_Genre error: {type(e).__name__}: {e}")
@@ -146,7 +145,7 @@ if __name__ == "__main__":
 
     client = TMDBClient()
     connection = get_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(buffered=True)
     
     #Get Genders of Movies
     get_genreMov(client, connection, cursor)

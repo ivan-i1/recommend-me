@@ -220,3 +220,6 @@ logs/*
 # Get Folder Empty .gitkeep
 !Data/img_recommendMe/.gitkeep
 !logs/.gitkeep
+
+# Local dev overrides — never push to production
+docker-compose.override.yml

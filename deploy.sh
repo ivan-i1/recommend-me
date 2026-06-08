@@ -11,15 +11,17 @@ docker compose up -d mysql
 echo "Waiting MySQL..."
 sleep 60
 
+echo "Filling Database"
+
 #docker compose up --build data
 docker compose --profile data-only up --build data
 
-echo "Filling Database"
+echo "Filled Database"
 sleep 5
 
 #docker compose up --build Backend
 
-docker compose --profile backend-only up --build backend
+docker compose --profile backend-only up --build -d backend
 docker compose --profile backend-only exec backend python API_recommendme/manage.py migrate
 
 echo "API Running"
