@@ -4,9 +4,11 @@ from datetime import date
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
 BASE_URL = "https://api.themoviedb.org/3"
 TIMEOUT = 60
+IMG_TIMEOUT = 15
 
 #PERIOD DATE EXTRACTION
 START_DATE_EXTRACTION = "1950-01-01"
+# START_DATE_EXTRACTION = "2026-04-01"
 END_DATE_EXTRACTION = date.today().strftime("%Y-%m-%d")
 
 #IMAGE PATH

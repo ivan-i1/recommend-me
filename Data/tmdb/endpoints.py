@@ -49,3 +49,9 @@ def movie_watch_providers(movie_id):
         "endpoint": f"movie/{movie_id}/watch/providers",
         "params": {}
     }
+
+def languages():
+    return {
+        "endpoint": "configuration/languages",
+        "params": {}
+    }

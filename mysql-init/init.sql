@@ -69,6 +69,12 @@ CREATE TABLE IF NOT EXISTS Movie_Genres (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS Languages (
+  code VARCHAR(2) PRIMARY KEY,
+  english_name VARCHAR(100) NOT NULL,
+  native_name VARCHAR(100)
+);
+
 #-----------------------------------------------------------------
 # CREATE PROVIDERS SECTION
 #-----------------------------------------------------------------

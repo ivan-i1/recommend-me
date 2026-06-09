@@ -93,6 +93,10 @@ def insert_country(cursor, country):
     query = "INSERT INTO Countries (code, name) VALUES (%s, %s) ON DUPLICATE KEY UPDATE name = VALUES(name)"
     cursor.execute(query, (country["code"], country["name"]))
 
+def insert_language(cursor, language):
+    query = "INSERT INTO Languages (code, english_name, native_name) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE english_name = VALUES(english_name), native_name = VALUES(native_name)"
+    cursor.execute(query, (language["code"], language["english_name"], language["native_name"]))
+
 def insert_country_if_not_exists(cursor, country_code):
     query = "INSERT IGNORE INTO Countries (code, name) VALUES (%s, %s)"
     cursor.execute(query, (country_code, country_code))

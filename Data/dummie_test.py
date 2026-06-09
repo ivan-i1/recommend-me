@@ -100,6 +100,20 @@ def get_movie_providers(client, connection, cursor, tmdb_movie_id):
 
     connection.commit()
 
+def get_languages(client, connection, cursor):
+    param = endpoints.languages()
+    response = client.get(endpoint=param["endpoint"], params=param["params"])
+
+    languages = helper.extract_languages_list(response)
+
+    for language in languages:
+        try:
+            queries.insert_language(cursor, language)
+        except Exception as e:
+            logging.error(f"Insert Language error ({language['code']}): {type(e).__name__}: {e}")
+
+    connection.commit()
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
@@ -115,9 +129,11 @@ if __name__ == "__main__":
     # get_providers(client, connection, cursor)
     # get_movie_providers(client, connection, cursor, movie_id)
 
-    logo_path = "/SPnB1qiCkYfirS2it3hZORwGVn.jpg"
-    path = get_logo_provider(client, logo_path, provider_id=8, provider_name="Netflix")
-    print(path)
+    # logo_path = "/SPnB1qiCkYfirS2it3hZORwGVn.jpg"
+    # path = get_logo_provider(client, logo_path, provider_id=8, provider_name="Netflix")
+    # print(path)
+
+    get_languages(client, connection, cursor)
 
     cursor.close()
     connection.close()

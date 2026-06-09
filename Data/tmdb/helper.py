@@ -58,17 +58,20 @@ def generate_dateList(start_date: str, end_date: str):
     
     return year_dict
 
+_kw_model = None
+
 def extract_keywords(text, n=4):
+    global _kw_model
+    if _kw_model is None:
+        _kw_model = KeyBERT()
 
-    kw_model = KeyBERT()
-
-    keywords = kw_model.extract_keywords(
+    keywords = _kw_model.extract_keywords(
         text,
-        keyphrase_ngram_range=(1, 2), 
-        stop_words='english',          
-        top_n=n,                      
-        use_mmr=True,                  
-        diversity=0.5                 
+        keyphrase_ngram_range=(1, 2),
+        stop_words='english',
+        top_n=n,
+        use_mmr=True,
+        diversity=0.5
     )
 
     return str([word for word, sim in keywords])
@@ -132,6 +135,17 @@ def extract_providers_list(response_json):
 
 def extract_countries_list(response_json):
     return [Country(item).to_json() for item in response_json.get("results", [])]
+
+def extract_languages_list(response_json):
+    return [
+        {
+            "code": item.get("iso_639_1"),
+            "english_name": item.get("english_name"),
+            "native_name": item.get("name"),
+        }
+        for item in response_json
+        if item.get("iso_639_1")
+    ]
 
 _PROVIDER_TYPES = ['flatrate', 'rent', 'buy', 'free', 'ads']
 

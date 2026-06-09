@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-vmch)las$vm%*y^t0nrd5cd5nk#!o#%r4k_9cy)t1#6kxp%**_'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -131,3 +131,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path("/app/media")
+
+LOGO_URL = "/logos/"
+LOGO_ROOT = Path("/app/logos")

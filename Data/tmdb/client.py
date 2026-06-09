@@ -1,6 +1,6 @@
 import requests
 import logging
-from config.settings import TMDB_API_KEY, BASE_URL, TIMEOUT, BASE_IMG_URL, POSTER_IMG_PATH
+from config.settings import TMDB_API_KEY, BASE_URL, TIMEOUT, IMG_TIMEOUT, BASE_IMG_URL, POSTER_IMG_PATH
 
 class TMDBClient:
     def __init__(self, api_key=TMDB_API_KEY):
@@ -41,7 +41,7 @@ class TMDBClient:
         logging.info(f"GET_IMG {url}")
 
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=IMG_TIMEOUT)
             response.raise_for_status()
             with open(img_save_path, "wb") as f:
                 f.write(response.content)

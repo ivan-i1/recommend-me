@@ -132,14 +132,10 @@ def get_movies(client, connection, cursor, date, page):
     json_movies, movie_genre_json = helper.extract_movies_list(response)
 
     for movie in json_movies:
+        # Credits (actors / director)
         try:
-            #Get Actors and Director
             paramMov = endpoints.credits_movies(movie["id_tmdb"])
-            response_credits = client.get(
-                    endpoint=paramMov["endpoint"], 
-                    params = paramMov["params"]
-                )
-            
+            response_credits = client.get(endpoint=paramMov["endpoint"], params=paramMov["params"])
             json_cast = response_credits["cast"]
             if json_cast:
                 df_cast = pd.DataFrame(json_cast)
@@ -147,49 +143,60 @@ def get_movies(client, connection, cursor, date, page):
                 movie["actors"] = str(top_5_actors)
             else:
                 movie["actors"] = ""
-
             json_crew = response_credits["crew"]
             if json_crew:
                 df_crew = pd.DataFrame(json_crew)
                 director = df_crew[df_crew['job'] == 'Director']
-                movie["director"] = str(director["name"].values[0])
+                movie["director"] = str(director["name"].values[0]) if not director.empty else ""
             else:
                 movie["director"] = ""
+        except Exception as e:
+            logging.error(f"Credits error ({movie['id_tmdb']}): {type(e).__name__}: {e}")
+            movie["actors"] = ""
+            movie["director"] = ""
 
-            #Get keywords
+        # Keywords
+        try:
             movie["keywords"] = helper.extract_keywords(str(movie["overview"]))
+        except Exception as e:
+            logging.error(f"Keywords error ({movie['id_tmdb']}): {type(e).__name__}: {e}")
+            movie["keywords"] = ""
 
-            #Get Images
-            download_path = ""
-            if movie["poster_path"] is not None:
-                download_path = movie["poster_path"]
-            else:
-                download_path = movie["backdrop_path"]
-
-            img_name = ""
-            title = helper.clean_text(movie["title"])
-            id_img = helper.clean_text(movie["id_tmdb"])
-            img_name = id_img + "_" + title + ".jpg"
-            img_path = f"{INTERNAL_IMG_SAVE_PATH}{img_name}"
-
-            if download_path is not None:
-                movie["img_path"] = img_path
+        # Image
+        try:
+            download_path = movie["poster_path"] or movie["backdrop_path"]
+            if download_path:
+                title = helper.clean_text(movie["title"])
+                id_img = helper.clean_text(movie["id_tmdb"])
+                img_name = f"{id_img}_{title}.jpg"
+                movie["img_path"] = f"{INTERNAL_IMG_SAVE_PATH}{img_name}"
                 client.get_img(download_path, img_name)
+            else:
+                movie["img_path"] = None
+        except Exception as e:
+            logging.error(f"Image error ({movie['id_tmdb']}): {type(e).__name__}: {e}")
+            movie["img_path"] = None
 
-            #Get all actors
+        # All actors
+        try:
             movie["all_actors"] = str(helper.get_all_actors(client, movie["id_tmdb"]))
+        except Exception as e:
+            logging.error(f"All actors error ({movie['id_tmdb']}): {type(e).__name__}: {e}")
+            movie["all_actors"] = ""
 
-            #Get Trailer of Movie
-            youtubeVideo = helper.get_videoMovie(client, movie["id_tmdb"], movie["original_language"])
-            movie["trailer_path"] = youtubeVideo
+        # Trailer
+        try:
+            movie["trailer_path"] = helper.get_videoMovie(client, movie["id_tmdb"], movie["original_language"])
+        except Exception as e:
+            logging.error(f"Trailer error ({movie['id_tmdb']}): {type(e).__name__}: {e}")
+            movie["trailer_path"] = None
 
-            #Insert in DB
+        # Insert movie + providers
+        try:
             queries.insert_movie(cursor, movie)
-
-            #Insert Provitors of Movie
             get_movie_providers(client, connection, cursor, movie["id_tmdb"])
         except Exception as e:
-            logging.error(f"Insert Movie error: {type(e).__name__}: {e}")
+            logging.error(f"Insert Movie error ({movie['id_tmdb']}): {type(e).__name__}: {e}")
 
 
     connection.commit()
@@ -228,12 +235,26 @@ def vectorized_movies(connection, cursor, year):
                 logging.error(f"Loop Insert Vectorized Movie error: {type(e).__name__}: {e}")
                 time.sleep(5)
                 continue
-        
+
         connection.commit()
-        
+
     except Exception as e:
         logging.error(f"Get Year Movie error: {type(e).__name__}: {e}")
         time.sleep(5)
+
+def get_languages(client, connection, cursor):
+    param = endpoints.languages()
+    response = client.get(endpoint=param["endpoint"], params=param["params"])
+
+    languages = helper.extract_languages_list(response)
+
+    for language in languages:
+        try:
+            queries.insert_language(cursor, language)
+        except Exception as e:
+            logging.error(f"Insert Language error ({language['code']}): {type(e).__name__}: {e}")
+
+    connection.commit()
 
 if __name__ == "__main__":
 
@@ -273,6 +294,8 @@ if __name__ == "__main__":
 
         #Vectorice Movies
         vectorized_movies(connection, cursor, year)
+
+    get_languages(client, connection, cursor)
         
 
     cursor.close()

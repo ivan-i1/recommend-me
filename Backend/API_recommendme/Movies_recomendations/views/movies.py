@@ -65,7 +65,15 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
         if adult == 1:
             movies = movies.filter(adult=int(adult))
 
-        random_movies = random.sample(list(movies), 2)
+        movies_list = list(movies)
+        if len(movies_list) < 2:
+            return Response({
+                'error': 'No movies match the criteria',
+                'message': 'No movies found with the specified filters',
+                'total': len(movies_list)
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        random_movies = random.sample(movies_list, 2)
 
         serializer_movies = self.get_serializer(random_movies, many=True)
         response = serializer_movies.data
