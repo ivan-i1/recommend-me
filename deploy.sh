@@ -15,9 +15,10 @@ echo "Cleaning up containers and volumes..."
 docker system prune -f
 docker compose down -v
 
-# Build all images
+# Build all images — --no-cache ensures latest code is always picked up
 echo "Building images..."
-docker compose build
+docker compose build --no-cache mysql
+docker compose --profile data-only build --no-cache data
 
 # Start MySQL
 echo "Starting MySQL..."
@@ -34,6 +35,4 @@ echo "MySQL is ready."
 # Fill the database — runs genres, regions, providers, movies, vectors
 echo "Filling database (this may take a while)..."
 docker compose --profile data-only run --rm data python fill_movie_db.py
-echo "Database filled."
-
 echo "Database filled. Run start_backend.sh to start the API."
