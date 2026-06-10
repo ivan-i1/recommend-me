@@ -12,6 +12,9 @@ CRON_COMMAND="cd \"$PROJECT_DIR\" && docker compose --profile data-only run --rm
 
 CRON_JOB="$CRON_SCHEDULE $CRON_COMMAND"
 
+# Ensure logs directory exists
+mkdir -p "$PROJECT_DIR/logs"
+
 # Get existing crontab (empty if none) — avoids pipefail on first-time setup
 EXISTING_CRONTAB=$(crontab -l 2>/dev/null || echo "")
 
