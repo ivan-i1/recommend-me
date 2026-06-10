@@ -1,3 +1,4 @@
+import json
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
@@ -63,7 +64,22 @@ class DetailMovieViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        actors = Actors.objects.filter(name__icontains=q).order_by('-popularity_score')[:7]
+        actors_selected_raw = request.query_params.get('actors_selected', None)
+        actors_selected = []
+        if actors_selected_raw:
+            try:
+                actors_selected = json.loads(actors_selected_raw)
+            except (json.JSONDecodeError, ValueError):
+                return Response(
+                    {'error': 'actors_selected must be a valid INT JSON list, for example [1,2,3].'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        actors = Actors.objects.filter(name__icontains=q)
+        if actors_selected:
+            actors = actors.exclude(id__in=actors_selected)
+        actors = actors.order_by('-popularity_score')[:7]
+
         serializer = ActorSerializer(actors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -76,7 +92,22 @@ class DetailMovieViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        directors = Directors.objects.filter(name__icontains=q).order_by('-popularity_score')[:7]
+        directors_selected_raw = request.query_params.get('directors_selected', None)
+        directors_selected = []
+        if directors_selected_raw:
+            try:
+                directors_selected = json.loads(directors_selected_raw)
+            except (json.JSONDecodeError, ValueError):
+                return Response(
+                    {'error': 'directors_selected must be a valid INT JSON list, for example [1,2,3].'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        directors = Directors.objects.filter(name__icontains=q)
+        if directors_selected:
+            directors = directors.exclude(id__in=directors_selected)
+        directors = directors.order_by('-popularity_score')[:7]
+
         serializer = DirectorSerializer(directors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

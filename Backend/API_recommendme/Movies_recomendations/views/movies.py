@@ -263,6 +263,112 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
         return Response(response, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'])
+    def twelve_options(self, request):
+        serializer = TwoOptionsRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        body_data = request.data
+        query_vector = body_data['vector']
+
+        genres = body_data['genres']
+        min_year = body_data['min_year']
+        max_year = body_data['max_year']
+        adult = body_data['adult']
+        query_id = body_data['ids']
+        original_language = body_data['original_language']
+        providers = body_data['providers']
+        actors = body_data['actors']
+        directors = body_data['directors']
+
+        movies = self.get_queryset()
+
+        if genres:
+            movies = movies.filter(
+                moviegenres__genre_id__in=list(genres)
+            ).distinct()
+
+        if min_year:
+            movies = movies.filter(release_date__year__gte=int(min_year))
+
+        if max_year:
+            movies = movies.filter(release_date__year__lte=int(max_year))
+
+        if adult == 1:
+            movies = movies.filter(adult=int(adult))
+
+        if original_language:
+            movies = movies.filter(original_language__in=list(original_language))
+
+        if providers:
+            movies = movies.filter(
+                movieproviders__provider_id__in=list(providers)
+            ).distinct()
+
+        if actors:
+            actor_movie_ids = MovieActors.objects.filter(
+                actor_id__in=list(actors)
+            ).values_list('movie_id', flat=True).distinct()
+            movies = movies.filter(id__in=actor_movie_ids)
+
+        if directors:
+            director_movie_ids = MovieDirectors.objects.filter(
+                director_id__in=list(directors)
+            ).values_list('movie_id', flat=True).distinct()
+            movies = movies.filter(id__in=director_movie_ids)
+
+        if query_id:
+            movies = movies.exclude(id__in=list(query_id))
+
+        id_list = list(movies.values_list('id', flat=True))
+
+        if len(id_list) < 2:
+            return Response({
+                'error': 'No movies match the criteria',
+                'message': 'No movies found with the specified filters',
+                'total': len(id_list)
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        vectorized_qs = Vectorized_Movies.objects.filter(id__in=id_list).values_list('id', 'movie_vector')
+        actual_ids = [row[0] for row in vectorized_qs]
+        vectors = [row[1] for row in vectorized_qs]
+
+        faiss_indices = get_distance_vectors(43, vectors, query_vector, 20).flatten()
+
+        seen = set()
+        ids_movies = []
+        for i in faiss_indices:
+            if i < len(actual_ids) and actual_ids[i] not in seen:
+                seen.add(actual_ids[i])
+                ids_movies.append(actual_ids[i])
+
+        if len(ids_movies) < 2:
+            return Response({
+                'error': 'No movies match the criteria',
+                'message': 'No movies found with the specified filters',
+                'total': len(ids_movies)
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        ids_selected = np.random.choice(ids_movies, size=min(12, len(ids_movies)), replace=False).tolist()
+        selected_movies = list(Movies.objects.filter(id__in=list(ids_selected)))
+        random.shuffle(selected_movies)
+
+        serializer_movies = self.get_serializer(selected_movies, many=True)
+        return Response(serializer_movies.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='searchMovie')
+    def search_movie(self, request):
+        q = request.query_params.get('q', '').strip()
+        if not q:
+            return Response(
+                {'error': 'Query parameter "q" is required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        movies = Movies.objects.filter(title__icontains=q).order_by('-popularity')[:20]
+        serializer = self.get_serializer(movies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
     def details(self, request):
         serializer = DetailsRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

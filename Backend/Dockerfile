@@ -27,4 +27,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Comando para ejecutar la aplicación
-CMD ["python", "API_recommendme/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "API_recommendme.wsgi:application", "--chdir", "/app/API_recommendme", "--bind", "0.0.0.0:8000", "--workers", "3"]
