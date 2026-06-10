@@ -8,7 +8,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CRON_SCHEDULE="0 3 15 * *"
 
 # Inner quotes escaped so the cron daemon receives them correctly
-CRON_COMMAND="cd \"$PROJECT_DIR\" && docker compose --profile data-only run --rm data python update_providers.py && docker compose --profile data-only run --rm data python add_new_movies.py >> \"$PROJECT_DIR/logs/updates.log\" 2>&1"
+CRON_COMMAND="cd \"$PROJECT_DIR\" && docker compose --profile data-only run --rm data python update_providers.py && docker compose --profile data-only run --rm data python add_new_movies.py && docker compose --profile data-only run --rm data python update_actors_directors.py >> \"$PROJECT_DIR/logs/updates.log\" 2>&1"
 
 CRON_JOB="$CRON_SCHEDULE $CRON_COMMAND"
 

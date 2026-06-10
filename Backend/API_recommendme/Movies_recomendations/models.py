@@ -98,6 +98,16 @@ class Countries(models.Model):
         db_table = 'Countries'
 
 
+class Languages(models.Model):
+    code = models.CharField(primary_key=True, max_length=2)
+    english_name = models.CharField(max_length=100)
+    native_name = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'Languages'
+
+
 class Providers(models.Model):
     tmdb_provider_id = models.IntegerField(unique=True)
     name = models.CharField(max_length=255)
@@ -133,6 +143,56 @@ class MovieProviders(models.Model):
         managed = False
         db_table = 'Movie_Providers'
         unique_together = (('movie', 'provider', 'country', 'provider_type'),)
+
+
+# -----------------------------------------------
+# ACTORS / DIRECTORS SECTION
+# -----------------------------------------------
+
+class Actors(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    movie_count = models.IntegerField(default=0)
+    total_votes = models.BigIntegerField(default=0)
+    avg_rating = models.DecimalField(max_digits=5, decimal_places=3, default=0)
+    popularity_score = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    created_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'Actors'
+
+
+class MovieActors(models.Model):
+    movie = models.ForeignKey(Movies, models.DO_NOTHING, db_column='movie_id', related_name='movie_actors')
+    actor = models.ForeignKey(Actors, models.DO_NOTHING, db_column='actor_id', related_name='actor_movies')
+
+    class Meta:
+        managed = False
+        db_table = 'Movie_Actors'
+        unique_together = (('movie', 'actor'),)
+
+
+class Directors(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    movie_count = models.IntegerField(default=0)
+    total_votes = models.BigIntegerField(default=0)
+    avg_rating = models.DecimalField(max_digits=5, decimal_places=3, default=0)
+    popularity_score = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    created_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'Directors'
+
+
+class MovieDirectors(models.Model):
+    movie = models.ForeignKey(Movies, models.DO_NOTHING, db_column='movie_id', related_name='movie_directors')
+    director = models.ForeignKey(Directors, models.DO_NOTHING, db_column='director_id', related_name='director_movies')
+
+    class Meta:
+        managed = False
+        db_table = 'Movie_Directors'
+        unique_together = (('movie', 'director'),)
 
 
 # -----------------------------------------------

@@ -87,7 +87,26 @@ class startMoviesRequestSerializer(serializers.Serializer):
     min_year = serializers.IntegerField(required=True)
     max_year = serializers.IntegerField(required=True)
     adult = serializers.BooleanField(required=True)
-
+    original_language = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+        allow_empty=True
+    )
+    providers = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        allow_empty=True
+    )
+    actors = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        allow_empty=True
+    )
+    directors = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        allow_empty=True
+    )
 
     def validate(self, attrs):
         min_year = attrs["min_year"]
@@ -126,6 +145,26 @@ class TwoOptionsRequestSerializer(serializers.Serializer):
     ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=True
+    )
+    original_language = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+        allow_empty=True
+    )
+    providers = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        allow_empty=True
+    )
+    actors = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        allow_empty=True
+    )
+    directors = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        allow_empty=True
     )
 
     def validate(self, attrs):

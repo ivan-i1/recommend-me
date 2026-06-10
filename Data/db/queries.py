@@ -137,3 +137,109 @@ def get_year_movies(cursor, year):
     results = cursor.fetchall()
     column_names = [desc[0] for desc in cursor.description]
     return results, column_names
+
+def get_all_movies_actors(cursor):
+    query = "SELECT id, all_actors, vote_count, vote_average FROM Movies WHERE all_actors IS NOT NULL AND all_actors != ''"
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def insert_actor(cursor, name, movie_count, total_votes, avg_rating, popularity_score):
+    query = """
+        INSERT INTO Actors (name, movie_count, total_votes, avg_rating, popularity_score)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            movie_count = VALUES(movie_count),
+            total_votes = VALUES(total_votes),
+            avg_rating = VALUES(avg_rating),
+            popularity_score = VALUES(popularity_score)
+    """
+    cursor.execute(query, (name, movie_count, total_votes, avg_rating, popularity_score))
+
+def get_actor_id(cursor, name):
+    query = "SELECT id FROM Actors WHERE name = %s"
+    cursor.execute(query, (name,))
+    result = cursor.fetchone()
+    return result[0] if result else None
+
+def insert_movie_actor(cursor, movie_id, actor_id):
+    query = "INSERT IGNORE INTO Movie_Actors (movie_id, actor_id) VALUES (%s, %s)"
+    cursor.execute(query, (movie_id, actor_id))
+
+def get_all_movies_directors(cursor):
+    query = "SELECT id, director, vote_count, vote_average FROM Movies WHERE director IS NOT NULL AND director != ''"
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def insert_director(cursor, name, movie_count, total_votes, avg_rating, popularity_score):
+    query = """
+        INSERT INTO Directors (name, movie_count, total_votes, avg_rating, popularity_score)
+        VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            movie_count = VALUES(movie_count),
+            total_votes = VALUES(total_votes),
+            avg_rating = VALUES(avg_rating),
+            popularity_score = VALUES(popularity_score)
+    """
+    cursor.execute(query, (name, movie_count, total_votes, avg_rating, popularity_score))
+
+def get_director_id(cursor, name):
+    query = "SELECT id FROM Directors WHERE name = %s"
+    cursor.execute(query, (name,))
+    result = cursor.fetchone()
+    return result[0] if result else None
+
+def insert_movie_director(cursor, movie_id, director_id):
+    query = "INSERT IGNORE INTO Movie_Directors (movie_id, director_id) VALUES (%s, %s)"
+    cursor.execute(query, (movie_id, director_id))
+
+def get_new_movies_for_actors(cursor):
+    query = """
+        SELECT id, all_actors, vote_count, vote_average FROM Movies
+        WHERE id NOT IN (SELECT DISTINCT movie_id FROM Movie_Actors)
+        AND all_actors IS NOT NULL AND all_actors != ''
+    """
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def get_new_movies_for_directors(cursor):
+    query = """
+        SELECT id, director, vote_count, vote_average FROM Movies
+        WHERE id NOT IN (SELECT DISTINCT movie_id FROM Movie_Directors)
+        AND director IS NOT NULL AND director != ''
+    """
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def get_actor_stats_from_movies(cursor, actor_id):
+    query = """
+        SELECT COUNT(*) as movie_count, SUM(m.vote_count) as total_votes, AVG(m.vote_average) as avg_rating
+        FROM Movie_Actors ma
+        JOIN Movies m ON ma.movie_id = m.id
+        WHERE ma.actor_id = %s
+    """
+    cursor.execute(query, (actor_id,))
+    return cursor.fetchone()
+
+def get_director_stats_from_movies(cursor, director_id):
+    query = """
+        SELECT COUNT(*) as movie_count, SUM(m.vote_count) as total_votes, AVG(m.vote_average) as avg_rating
+        FROM Movie_Directors md
+        JOIN Movies m ON md.movie_id = m.id
+        WHERE md.director_id = %s
+    """
+    cursor.execute(query, (director_id,))
+    return cursor.fetchone()
+
+def update_actor_stats(cursor, actor_id, movie_count, total_votes, avg_rating, popularity_score):
+    query = """
+        UPDATE Actors SET movie_count = %s, total_votes = %s, avg_rating = %s, popularity_score = %s
+        WHERE id = %s
+    """
+    cursor.execute(query, (movie_count, total_votes, avg_rating, popularity_score, actor_id))
+
+def update_director_stats(cursor, director_id, movie_count, total_votes, avg_rating, popularity_score):
+    query = """
+        UPDATE Directors SET movie_count = %s, total_votes = %s, avg_rating = %s, popularity_score = %s
+        WHERE id = %s
+    """
+    cursor.execute(query, (movie_count, total_votes, avg_rating, popularity_score, director_id))

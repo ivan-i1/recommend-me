@@ -3,7 +3,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from ..models import Movies, Vectorized_Movies
+from ..models import Movies, Vectorized_Movies, MovieActors, MovieDirectors
 from ..serializers.movies import MovieSerializer, TwoOptionsRequestSerializer, DetailsRequestSerializer, startMoviesRequestSerializer
 from ..utils import get_distance_vectors
 import numpy as np
@@ -35,11 +35,59 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
         max_year = request.GET.get('max_year')
         adult = request.GET.get('adult')
 
+        original_language_raw = request.GET.get("original_language", None)
+        if original_language_raw is not None:
+            try:
+                original_language = json.loads(original_language_raw)
+            except json.JSONDecodeError:
+                return Response({
+                    "original_language": 'original_language must be a valid string JSON list, for example ["en","es"].'
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            original_language = []
+
+        providers_raw = request.GET.get("providers", None)
+        if providers_raw is not None:
+            try:
+                providers = json.loads(providers_raw)
+            except json.JSONDecodeError:
+                return Response({
+                    "providers": 'providers must be a valid INT JSON list, for example [1,2,3].'
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            providers = []
+
+        actors_raw = request.GET.get("actors", None)
+        if actors_raw is not None:
+            try:
+                actors = json.loads(actors_raw)
+            except json.JSONDecodeError:
+                return Response({
+                    "actors": 'actors must be a valid INT JSON list, for example [1,2,3].'
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            actors = []
+
+        directors_raw = request.GET.get("directors", None)
+        if directors_raw is not None:
+            try:
+                directors = json.loads(directors_raw)
+            except json.JSONDecodeError:
+                return Response({
+                    "directors": 'directors must be a valid INT JSON list, for example [1,2,3].'
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            directors = []
+
         data = {
             "genres": genres,
             "min_year": min_year,
             "max_year": max_year,
             "adult": adult,
+            "original_language": original_language,
+            "providers": providers,
+            "actors": actors,
+            "directors": directors,
         }
 
         serializer = startMoviesRequestSerializer(data=data)
@@ -64,6 +112,30 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
 
         if adult == 1:
             movies = movies.filter(adult=int(adult))
+
+        #Original Language
+        if original_language:
+            movies = movies.filter(original_language__in=list(original_language))
+
+        #Providers
+        if providers:
+            movies = movies.filter(
+                movieproviders__provider_id__in=list(providers)
+            ).distinct()
+
+        #Actors
+        if actors:
+            actor_movie_ids = MovieActors.objects.filter(
+                actor_id__in=list(actors)
+            ).values_list('movie_id', flat=True).distinct()
+            movies = movies.filter(id__in=actor_movie_ids)
+
+        #Directors
+        if directors:
+            director_movie_ids = MovieDirectors.objects.filter(
+                director_id__in=list(directors)
+            ).values_list('movie_id', flat=True).distinct()
+            movies = movies.filter(id__in=director_movie_ids)
 
         movies_list = list(movies)
         if len(movies_list) < 2:
@@ -97,6 +169,10 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
         max_year = body_data['max_year']
         adult = body_data['adult']
         query_id = body_data['ids']
+        original_language = body_data['original_language']
+        providers = body_data['providers']
+        actors = body_data['actors']
+        directors = body_data['directors']
 
         movies = self.get_queryset()
 
@@ -116,7 +192,31 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
 
         if adult == 1:
             movies = movies.filter(adult=int(adult))
-        
+
+        #Original Language
+        if original_language:
+            movies = movies.filter(original_language__in=list(original_language))
+
+        #Providers
+        if providers:
+            movies = movies.filter(
+                movieproviders__provider_id__in=list(providers)
+            ).distinct()
+
+        #Actors
+        if actors:
+            actor_movie_ids = MovieActors.objects.filter(
+                actor_id__in=list(actors)
+            ).values_list('movie_id', flat=True).distinct()
+            movies = movies.filter(id__in=actor_movie_ids)
+
+        #Directors
+        if directors:
+            director_movie_ids = MovieDirectors.objects.filter(
+                director_id__in=list(directors)
+            ).values_list('movie_id', flat=True).distinct()
+            movies = movies.filter(id__in=director_movie_ids)
+
         if query_id:
             movies = movies.exclude(id__in=list(query_id))
     
@@ -137,12 +237,25 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
         #Get Closest Vectors (returns positional indices into `vectors` array)
         faiss_indices = get_distance_vectors(43, vectors, query_vector, 5).flatten()
 
-        #Map FAISS positional indices back to real movie IDs
-        ids_movies = [actual_ids[i] for i in faiss_indices if i < len(actual_ids)]
+        #Map FAISS positional indices back to real movie IDs (deduplicated)
+        seen = set()
+        ids_movies = []
+        for i in faiss_indices:
+            if i < len(actual_ids) and actual_ids[i] not in seen:
+                seen.add(actual_ids[i])
+                ids_movies.append(actual_ids[i])
+
+        if len(ids_movies) < 2:
+            return Response({
+                'error': 'No movies match the criteria',
+                'message': 'No movies found with the specified filters',
+                'total': len(ids_movies)
+            }, status=status.HTTP_404_NOT_FOUND)
 
         #Pick Randoms ids
         ids_selected = np.random.choice(ids_movies, size=2, replace=False).tolist()
-        selected_movies = Movies.objects.filter(id__in=list(ids_selected))
+        selected_movies = list(Movies.objects.filter(id__in=list(ids_selected)))
+        random.shuffle(selected_movies)
 
         #Response
         serializer_movies = self.get_serializer(selected_movies, many=True)

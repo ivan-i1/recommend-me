@@ -35,4 +35,9 @@ echo "MySQL is ready."
 # Fill the database — runs genres, regions, providers, movies, vectors
 echo "Filling database (this may take a while)..."
 docker compose --profile data-only run --rm data python fill_movie_db.py
+
+# Fill actors and directors tables
+echo "Filling actors and directors..."
+docker compose --profile data-only run --rm data python fill_actors_directors_db.py
+
 echo "Database filled. Run start_backend.sh to start the API."
