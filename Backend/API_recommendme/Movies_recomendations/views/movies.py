@@ -145,7 +145,7 @@ class MoviesViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
                 'total': len(movies_list)
             }, status=status.HTTP_404_NOT_FOUND)
 
-        random_movies = random.sample(movies_list, 2)
+        random_movies = random.sample(movies_list, min(12, len(movies_list)))
 
         serializer_movies = self.get_serializer(random_movies, many=True)
         response = serializer_movies.data
